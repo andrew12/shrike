@@ -642,7 +642,7 @@ boolean_t is_founder(mychan_t *mychan, myuser_t *myuser)
   if (mychan->founder == myuser)
     return TRUE;
 
-  if ((chanacs_find(mychan, myuser, CA_FOUNDER)))
+  if ((chanacs_find(mychan, myuser, ACS_FOUNDER)))
     return TRUE;
 
   return FALSE;
@@ -656,12 +656,13 @@ boolean_t is_successor(mychan_t *mychan, myuser_t *myuser)
   if (mychan->successor == myuser)
     return TRUE;
 
-  if ((chanacs_find(mychan, myuser, CA_SUCCESSOR)))
+  if ((chanacs_find(mychan, myuser, ACS_SUCCESSOR)))
     return TRUE;
 
   return FALSE;
 }
 
+/* XXX - old is_xop for CA_AOP etc
 boolean_t is_xop(mychan_t *mychan, myuser_t *myuser, uint8_t level)
 {
   chanacs_t *ca;
@@ -681,7 +682,7 @@ boolean_t is_xop(mychan_t *mychan, myuser_t *myuser, uint8_t level)
     return TRUE;
 
   return FALSE;
-}
+}*/
 
 boolean_t is_on_mychan(mychan_t *mychan, myuser_t *myuser)
 {
@@ -713,7 +714,7 @@ boolean_t should_op(mychan_t *mychan, myuser_t *myuser)
   if ((is_founder(mychan, myuser)) || (is_successor(mychan, myuser)))
     return TRUE;
 
-  if (is_xop(mychan, myuser, (CA_SOP | CA_AOP)))
+  if (chanacs_find(mychan, myuser, ACS_OP))
     return TRUE;
 
   return FALSE;
@@ -727,7 +728,7 @@ boolean_t should_op_host(mychan_t *mychan, char *host)
   if (!match(host, hostbuf))
     return FALSE;
 
-  if ((ca = chanacs_find_host(mychan, host, CA_AOP)))
+  if ((ca = chanacs_find_host(mychan, host, ACS_OP)))
     return TRUE;
 
   return FALSE;
@@ -750,7 +751,7 @@ boolean_t should_voice(mychan_t *mychan, myuser_t *myuser)
   if (CMODE_VOICE & cu->modes)
     return FALSE;
 
-  if (is_xop(mychan, myuser, CA_VOP))
+  if (chanacs_find(mychan, myuser, ACS_VOICE))
     return TRUE;
 
   return FALSE;
@@ -764,7 +765,7 @@ boolean_t should_voice_host(mychan_t *mychan, char *host)
   if (!match(host, hostbuf))
     return FALSE;
 
-  if ((ca = chanacs_find_host(mychan, host, CA_VOP)))
+  if ((ca = chanacs_find_host(mychan, host, ACS_VOICE)))
     return TRUE;
 
   return FALSE;

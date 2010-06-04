@@ -1162,7 +1162,7 @@ chanacs_t *chanacs_add(mychan_t *mychan, myuser_t *myuser, uint8_t level)
 
   ca->mychan = mychan;
   ca->myuser = myuser;
-  ca->level |= level;
+  ca->flags |= level;
 
   node_add(ca, n1, &mychan->chanacs);
   node_add(ca, n2, &myuser->chanacs);
@@ -1192,7 +1192,7 @@ chanacs_t *chanacs_add_host(mychan_t *mychan, char *host, uint8_t level)
   ca->mychan = mychan;
   ca->myuser = NULL;
   ca->host = sstrdup(host);
-  ca->level |= level;
+  ca->flags |= level;
 
   node_add(ca, n, &mychan->chanacs);
 
@@ -1210,7 +1210,7 @@ void chanacs_delete(mychan_t *mychan, myuser_t *myuser, uint8_t level)
   {
     ca = (chanacs_t *)n->data;
 
-    if ((ca->myuser == myuser) && (ca->level == level))
+    if ((ca->myuser == myuser) && (ca->flags == level))
     {
       slog(LG_DEBUG, "chanacs_delete(): %s -> %s", ca->mychan->name,
            ca->myuser->name);
@@ -1237,7 +1237,7 @@ void chanacs_delete_host(mychan_t *mychan, char *host, uint8_t level)
   {
     ca = (chanacs_t *)n->data;
 
-    if ((ca->host) && (!irccasecmp(host, ca->host)) && (ca->level == level))
+    if ((ca->host) && (!irccasecmp(host, ca->host)) && (ca->flags == level))
     {
       slog(LG_DEBUG, "chanacs_delete_host(): %s -> %s", ca->mychan->name,
            ca->host);
@@ -1267,7 +1267,7 @@ chanacs_t *chanacs_find(mychan_t *mychan, myuser_t *myuser, uint8_t level)
   {
     ca = (chanacs_t *)n->data;
 
-    if ((ca->myuser == myuser) && (ca->level & level))
+    if ((ca->myuser == myuser) && (ca->flags & level))
       return ca;
   }
 
@@ -1286,7 +1286,7 @@ chanacs_t *chanacs_find_host(mychan_t *mychan, char *host, uint8_t level)
   {
     ca = (chanacs_t *)n->data;
 
-    if ((ca->host) && (!match(ca->host, host)) && (ca->level & level))
+    if ((ca->host) && (!match(ca->host, host)) && (ca->flags & level))
       return ca;
   }
 

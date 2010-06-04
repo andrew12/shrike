@@ -574,10 +574,10 @@ static void do_xop(char *origin, uint8_t level)
   if (!strcasecmp("ADD", cmd))
   {
     /* VOP */
-    if (CA_VOP & level)
+    if (ACL_VOICE & level)
     {
-      if ((!is_founder(mc, u->myuser)) && (!is_successor(mc, u->myuser)) &&
-          (!is_xop(mc, u->myuser, CA_SOP)))
+      if (!(chanacs_find(mc, u->myuser,
+           (ACL_ACL | ACL_SUCCESSOR | ACL_FOUNDER))))
       {
         notice(origin, "You are not authorized to perform this operation.");
         return;
@@ -593,7 +593,7 @@ static void do_xop(char *origin, uint8_t level)
           return;
         }
 
-        if (chanacs_find_host(mc, uname, CA_VOP))
+        if (chanacs_find_host(mc, uname, ACL_VOICE))
         {
           notice(origin, "\2%s\2 is already on the VOP list for \2%s\2",
                  uname, mc->name);
@@ -602,7 +602,7 @@ static void do_xop(char *origin, uint8_t level)
 
         uname = collapse(uname);
 
-        chanacs_add_host(mc, uname, CA_VOP);
+        chanacs_add_host(mc, uname, ACL_VOICE);
 
         verbose(mc, "\2%s\2 added \2%s\2 to the VOP list.", u->nick, uname);
 
@@ -637,17 +637,18 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      if ((ca = chanacs_find(mc, mu, CA_VOP)))
+      if ((ca = chanacs_find(mc, mu, ACL_VOICE)))
       {
         notice(origin, "\2%s\2 is already on the VOP list for \2%s\2.",
                mu->name, mc->name);
         return;
       }
 
-      if ((ca = chanacs_find(mc, mu, CA_AOP)))
+      /* XXX - it deletes this farther down
+      if ((ca = chanacs_find(mc, mu, ACL_OP)))
       {
-        chanacs_delete(mc, mu, CA_AOP);
-        chanacs_add(mc, mu, CA_VOP);
+        chanacs_delete(mc, mu, ACL_OP);
+        chanacs_add(mc, mu, ACL_VOICE);
 
         notice(origin, "\2%s\2's access on \2%s\2 has been changed from "
                "\2AOP\2 to \2VOP\2.", mu->name, mc->name);
@@ -656,12 +657,13 @@ static void do_xop(char *origin, uint8_t level)
                 u->nick, mu->name);
 
         return;
-      }
+      }*/
 
-      if ((ca = chanacs_find(mc, mu, CA_SOP)))
+      if ((ca = chanacs_find(mc, mu, ACL_ACL)))
       {
-        chanacs_delete(mc, mu, CA_SOP);
-        chanacs_add(mc, mu, CA_VOP);
+        chanacs_delete(mc, mu, ACL_ACL);
+        chanacs_delete(mc, mu, ACL_OP);
+        chanacs_add(mc, mu, ACL_VOICE);
 
         notice(origin, "\2%s\2's access on \2%s\2 has been changed from "
                "\2SOP\2 to \2VOP\2.", mu->name, mc->name);
@@ -672,7 +674,7 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      chanacs_add(mc, mu, CA_VOP);
+      chanacs_add(mc, mu, ACL_VOICE);
 
       notice(origin, "\2%s\2 has been added to the VOP list for \2%s\2.",
              mu->name, mc->name);
@@ -683,10 +685,10 @@ static void do_xop(char *origin, uint8_t level)
     }
 
     /* AOP */
-    if (CA_AOP & level)
+    if (ACL_OP & level)
     {
-      if ((!is_founder(mc, u->myuser)) && (!is_successor(mc, u->myuser)) &&
-          (!is_xop(mc, u->myuser, CA_SOP)))
+      if (!(chanacs_find(mc, u->myuser,
+           (ACL_ACL | ACL_SUCCESSOR | ACL_FOUNDER))))
       {
         notice(origin, "You are not authorized to perform this operation.");
         return;
@@ -702,7 +704,7 @@ static void do_xop(char *origin, uint8_t level)
           return;
         }
 
-        if (chanacs_find_host(mc, uname, CA_AOP))
+        if (chanacs_find_host(mc, uname, ACL_OP))
         {
           notice(origin, "\2%s\2 is already on the AOP list for \2%s\2",
                  uname, mc->name);
@@ -711,7 +713,7 @@ static void do_xop(char *origin, uint8_t level)
 
         uname = collapse(uname);
 
-        chanacs_add_host(mc, uname, CA_AOP);
+        chanacs_add_host(mc, uname, ACL_OP);
 
         verbose(mc, "\2%s\2 added \2%s\2 to the AOP list.", u->nick, uname);
 
@@ -739,17 +741,17 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      if ((ca = chanacs_find(mc, mu, CA_AOP)))
+      if ((ca = chanacs_find(mc, mu, ACL_OP)))
       {
         notice(origin, "\2%s\2 is already on the AOP list for \2%s\2.",
                mu->name, mc->name);
         return;
       }
 
-      if ((ca = chanacs_find(mc, mu, CA_VOP)))
+      if ((ca = chanacs_find(mc, mu, ACL_VOICE)))
       {
-        chanacs_delete(mc, mu, CA_VOP);
-        chanacs_add(mc, mu, CA_AOP);
+        chanacs_delete(mc, mu, ACL_VOICE);
+        chanacs_add(mc, mu, ACL_OP);
 
         notice(origin, "\2%s\2's access on \2%s\2 has been changed from "
                "\2VOP\2 to \2AOP\2.", mu->name, mc->name);
@@ -760,10 +762,10 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      if ((ca = chanacs_find(mc, mu, CA_SOP)))
+      if ((ca = chanacs_find(mc, mu, ACL_ACL)))
       {
-        chanacs_delete(mc, mu, CA_SOP);
-        chanacs_add(mc, mu, CA_AOP);
+        chanacs_delete(mc, mu, ACL_ACL);
+        chanacs_add(mc, mu, ACL_OP);
 
         notice(origin, "\2%s\2's access on \2%s\2 has been changed from "
                "\2SOP\2 to \2AOP\2.", mu->name, mc->name);
@@ -774,7 +776,7 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      chanacs_add(mc, mu, CA_AOP);
+      chanacs_add(mc, mu, ACL_OP);
 
       notice(origin, "\2%s\2 has been added to the AOP list for \2%s\2.",
              mu->name, mc->name);
@@ -785,7 +787,7 @@ static void do_xop(char *origin, uint8_t level)
     }
 
     /* SOP */
-    if (CA_SOP & level)
+    if (ACL_ACL & level)
     {
       if ((!is_founder(mc, u->myuser)) && (!is_successor(mc, u->myuser)))
       {
@@ -804,17 +806,18 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      if ((ca = chanacs_find(mc, mu, CA_SOP)))
+      if ((ca = chanacs_find(mc, mu, ACL_ACL)))
       {
         notice(origin, "\2%s\2 is already on the SOP list for \2%s\2.",
                mu->name, mc->name);
         return;
       }
 
-      if ((ca = chanacs_find(mc, mu, CA_VOP)))
+      if ((ca = chanacs_find(mc, mu, ACL_VOICE)))
       {
-        chanacs_delete(mc, mu, CA_VOP);
-        chanacs_add(mc, mu, CA_SOP);
+        chanacs_delete(mc, mu, ACL_VOICE);
+        chanacs_add(mc, mu, ACL_ACL);
+        chanacs_add(mc, mu, ACL_OP);
 
         notice(origin, "\2%s\2's access on \2%s\2 has been changed from "
                "\2VOP\2 to \2SOP\2.", mu->name, mc->name);
@@ -825,10 +828,11 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      if ((ca = chanacs_find(mc, mu, CA_AOP)))
+      /* SOP is now (CA_ACL | CA_OP)
+      if ((ca = chanacs_find(mc, mu, ACL_OP)))
       {
-        chanacs_delete(mc, mu, CA_AOP);
-        chanacs_add(mc, mu, CA_SOP);
+        chanacs_delete(mc, mu, ACL_OP);
+        chanacs_add(mc, mu, ACL_ACL);
 
         notice(origin, "\2%s\2's access on \2%s\2 has been changed from "
                "\2AOP\2 to \2SOP\2.", mu->name, mc->name);
@@ -837,9 +841,10 @@ static void do_xop(char *origin, uint8_t level)
                 u->nick, mu->name);
 
         return;
-      }
+      }*/
 
-      chanacs_add(mc, mu, CA_SOP);
+      chanacs_add(mc, mu, ACL_ACL);
+      chanacs_add(mc, mu, ACL_OP);
 
       notice(origin, "\2%s\2 has been added to the SOP list for \2%s\2.",
              mu->name, mc->name);
@@ -854,10 +859,10 @@ static void do_xop(char *origin, uint8_t level)
   else if (!strcasecmp("DEL", cmd))
   {
     /* VOP */
-    if (CA_VOP & level)
+    if (ACL_VOICE & level)
     {
-      if ((!is_founder(mc, u->myuser)) && (!is_successor(mc, u->myuser)) &&
-          (!is_xop(mc, u->myuser, CA_SOP)))
+      if (!(chanacs_find(mc, u->myuser,
+           (ACL_ACL | ACL_SUCCESSOR | ACL_FOUNDER))))
       {
         notice(origin, "You are not authorized to perform this operation.");
         return;
@@ -873,14 +878,14 @@ static void do_xop(char *origin, uint8_t level)
           return;
         }
 
-        if (!chanacs_find_host(mc, uname, CA_VOP))
+        if (!chanacs_find_host(mc, uname, ACL_VOICE))
         {
           notice(origin, "\2%s\2 is not on the VOP list for \2%s\2.",
                  uname, mc->name);
           return;
         }
 
-        chanacs_delete_host(mc, uname, CA_VOP);
+        chanacs_delete_host(mc, uname, ACL_VOICE);
 
         verbose(mc, "\2%s\2 removed \2%s\2 from the VOP list.", u->nick,
                 uname);
@@ -891,14 +896,14 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      if (!(ca = chanacs_find(mc, mu, CA_VOP)))
+      if (!(ca = chanacs_find(mc, mu, ACL_VOICE)))
       {
         notice(origin, "\2%s\2 is not on the VOP list for \2%s\2.",
                mu->name, mc->name);
         return;
       }
 
-      chanacs_delete(mc, mu, CA_VOP);
+      chanacs_delete(mc, mu, ACL_VOICE);
 
       notice(origin, "\2%s\2 has been removed from the VOP list for \2%s\2.",
              mu->name, mc->name);
@@ -910,10 +915,10 @@ static void do_xop(char *origin, uint8_t level)
     }
 
     /* AOP */
-    if (CA_AOP & level)
+    if (ACL_OP & level)
     {
-      if ((!is_founder(mc, u->myuser)) && (!is_successor(mc, u->myuser)) &&
-          (!is_xop(mc, u->myuser, CA_SOP)))
+      if (!(chanacs_find(mc, u->myuser,
+           (ACL_ACL | ACL_SUCCESSOR | ACL_FOUNDER))))
       {
         notice(origin, "You are not authorized to perform this operation.");
         return;
@@ -929,14 +934,14 @@ static void do_xop(char *origin, uint8_t level)
           return;
         }
 
-        if (!chanacs_find_host(mc, uname, CA_AOP))
+        if (!chanacs_find_host(mc, uname, ACL_OP))
         {
           notice(origin, "\2%s\2 is not on the AOP list for \2%s\2.",
                  uname, mc->name);
           return;
         }
 
-        chanacs_delete_host(mc, uname, CA_AOP);
+        chanacs_delete_host(mc, uname, ACL_OP);
 
         verbose(mc, "\2%s\2 removed \2%s\2 from the AOP list.", u->nick,
                 uname);
@@ -946,14 +951,14 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      if (!(ca = chanacs_find(mc, mu, CA_AOP)))
+      if (!(ca = chanacs_find(mc, mu, ACL_OP)))
       {
         notice(origin, "\2%s\2 is not on the AOP list for \2%s\2.",
                mu->name, mc->name);
         return;
       }
 
-      chanacs_delete(mc, mu, CA_AOP);
+      chanacs_delete(mc, mu, ACL_OP);
 
       notice(origin, "\2%s\2 has been removed from the AOP list for \2%s\2.",
              mu->name, mc->name);
@@ -965,7 +970,7 @@ static void do_xop(char *origin, uint8_t level)
     }
 
     /* SOP */
-    if (CA_SOP & level)
+    if (ACL_ACL & level)
     {
       if ((!is_founder(mc, u->myuser)) && (!is_successor(mc, u->myuser)))
       {
@@ -980,14 +985,15 @@ static void do_xop(char *origin, uint8_t level)
         return;
       }
 
-      if (!(ca = chanacs_find(mc, mu, CA_SOP)))
+      if (!(ca = chanacs_find(mc, mu, ACL_ACL)))
       {
         notice(origin, "\2%s\2 is not on the SOP list for \2%s\2.",
                mu->name, mc->name);
         return;
       }
 
-      chanacs_delete(mc, mu, CA_SOP);
+      chanacs_delete(mc, mu, ACL_ACL);
+      chanacs_delete(mc, mu, ACL_OP);
 
       notice(origin, "\2%s\2 has been removed from the SOP list for \2%s\2.",
              mu->name, mc->name);
@@ -1001,15 +1007,16 @@ static void do_xop(char *origin, uint8_t level)
 
   else if (!strcasecmp("LIST", cmd))
   {
-    if ((!is_founder(mc, u->myuser)) && (!is_successor(mc, u->myuser)) &&
-        (!is_xop(mc, u->myuser, (CA_VOP | CA_AOP | CA_SOP))))
+    if (!(chanacs_find(mc, u->myuser, (ACL_ACL | ACL_VOICE | ACL_OP |
+                                       ACL_ACLVIEW | ACL_SUCCESSOR |
+                                       ACL_FOUNDER))))
     {
       notice(origin, "You are not authorized to perform this operation.");
       return;
     }
 
     /* VOP */
-    if (CA_VOP & level)
+    if (ACL_VOICE & level)
     {
       uint8_t i = 0;
 
@@ -1019,7 +1026,7 @@ static void do_xop(char *origin, uint8_t level)
       {
         ca = (chanacs_t *)n->data;
 
-        if (CA_VOP & ca->level)
+        if (ACL_VOICE & ca->level)
         {
           if (ca->host)
             notice(origin, "%d: \2%s\2", ++i, ca->host);
@@ -1038,7 +1045,7 @@ static void do_xop(char *origin, uint8_t level)
     }
 
     /* AOP */
-    if (CA_AOP & level)
+    if (ACL_OP & level)
     {
       uint8_t i = 0;
 
@@ -1048,7 +1055,7 @@ static void do_xop(char *origin, uint8_t level)
       {
         ca = (chanacs_t *)n->data;
 
-        if (CA_AOP & ca->level)
+        if ((ACL_OP & ca->level) && (!ACL_ACL & ca->level))
         {
           if (ca->host)
             notice(origin, "%d: \2%s\2", ++i, ca->host);
@@ -1067,7 +1074,7 @@ static void do_xop(char *origin, uint8_t level)
     }
 
     /* SOP */
-    if (CA_SOP & level)
+    if (ACL_ACL & level)
     {
       uint8_t i = 0;
 
@@ -1077,7 +1084,7 @@ static void do_xop(char *origin, uint8_t level)
       {
         ca = (chanacs_t *)n->data;
 
-        if (CA_SOP & ca->level)
+        if ((ACL_ACL & ca->level) && (ACL_OP & ca->level))
         {
           if (ca->myuser->user)
             notice(origin, "%d: \2%s\2 (logged in from \2%s\2)", ++i,
@@ -1096,17 +1103,17 @@ static void do_xop(char *origin, uint8_t level)
 
 static void do_sop(char *origin)
 {
-  do_xop(origin, CA_SOP);
+  do_xop(origin, ACL_ACL);
 }
 
 static void do_aop(char *origin)
 {
-  do_xop(origin, CA_AOP);
+  do_xop(origin, ACL_OP);
 }
 
 static void do_vop(char *origin)
 {
-  do_xop(origin, CA_VOP);
+  do_xop(origin, ACL_VOICE);
 }
 
 static void do_op(char *origin)

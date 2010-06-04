@@ -497,7 +497,8 @@ struct chanacs_
   myuser_t *myuser;
   mychan_t *mychan;
   char *host;
-  uint32_t level;
+  uint32_t level; /* XXX - kill */
+  uint32_t flags;
 };
 
 #define CA_NONE          0x00000001
@@ -506,6 +507,18 @@ struct chanacs_
 #define CA_SOP           0x00000008
 #define CA_FOUNDER       0x00000010
 #define CA_SUCCESSOR     0x00000020
+
+#define ACL_NONE         0x00000001 /* no flags                        */
+#define ACL_KICK         0x00000002 /* auto kick/ban                   */
+#define ACL_VOICE        0x00000004 /* auto voice                      */
+#define ACL_OP           0x00000008 /* auto op                         */
+#define ACL_SET          0x00000010 /* access to a subset of SET flags */
+#define ACL_INVITE       0x00000020 /* access to INVITE                */
+#define ACL_RECOVER      0x00000040 /* access to RECOVER               */
+#define ACL_ACLVIEW      0x00000080 /* access to view access lists     */
+#define ACL_ACL          0x00000100 /* access to modify access lists   */
+#define ACL_SUCCESSOR    0x00000200 /* traditional successor           */
+#define ACL_FOUNDER      0x00000400 /* traditional founder             */
 
 /* struct for irc message hash table */
 struct message_
