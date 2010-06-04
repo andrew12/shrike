@@ -1155,6 +1155,12 @@ chanacs_t *chanacs_add(mychan_t *mychan, myuser_t *myuser, uint8_t level)
 
   slog(LG_DEBUG, "chanacs_add(): %s -> %s", mychan->name, myuser->name);
 
+  if (ca = chanacs_exists(mychan, myuser))
+  {
+    ca->flags |= level;
+    return;
+  }
+
   n1 = node_create();
   n2 = node_create();
 
@@ -1253,6 +1259,22 @@ void chanacs_delete_host(mychan_t *mychan, char *host, uint8_t level)
       return;
     }
   }
+}
+
+chanacs_t *chanacs_exists(mychan_t *mychan, myuser_t *myuser)
+{
+  node_t *n;
+  chanacs_t *ca;
+
+  LIST_FOREACH(n, mychan->chanacs.head)
+  {
+    ca = (chanacs_t *)n->data;
+
+    if (ca->myuser == myuser)
+      return ca;
+  }
+
+  return NULL;
 }
 
 chanacs_t *chanacs_find(mychan_t *mychan, myuser_t *myuser, uint8_t level)

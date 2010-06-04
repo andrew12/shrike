@@ -223,6 +223,7 @@ E chanacs_t *chanacs_add(mychan_t *mychan, myuser_t *myuser, uint8_t level);
 E chanacs_t *chanacs_add_host(mychan_t *mychan, char *host, uint8_t level);
 E void chanacs_delete(mychan_t *mychan, myuser_t *myuser, uint8_t level);
 E void chanacs_delete_host(mychan_t *mychan, char *host, uint8_t level);
+E chanacs_t *chanacs_exists(mychan_t *mychan, myuser_t *myuser);
 E chanacs_t *chanacs_find(mychan_t *mychan, myuser_t *myuser, uint8_t level);
 E chanacs_t *chanacs_find_host(mychan_t *mychan, char *host, uint8_t level);
 
