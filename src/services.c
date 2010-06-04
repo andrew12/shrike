@@ -166,6 +166,7 @@ void part(char *chan, char *nick)
   if (!(cu = chanuser_find(c, u)))
     return;
 
+  /* XXX what the hell is this here for? */
   /*if (!irccasecmp(svs.chan, c->name))
      return; */
 
@@ -222,8 +223,8 @@ void expire_check(void *arg)
                 snoop("SUCCESSION: \2%s\2 -> \2%s\2 from \2%s\2",
                       mc->successor->name, mc->name, mc->founder->name);
 
-                chanacs_delete(mc, mc->successor, CA_SUCCESSOR);
-                chanacs_add(mc, mc->successor, CA_FOUNDER);
+                chanacs_delete(mc, mc->successor, ACL_SUCCESSOR);
+                chanacs_add(mc, mc->successor, ACL_FOUNDER);
                 mc->founder = mc->successor;
                 mc->successor = NULL;
 

@@ -1191,6 +1191,12 @@ chanacs_t *chanacs_add_host(mychan_t *mychan, char *host, uint8_t level)
 
   slog(LG_DEBUG, "chanacs_add_host(): %s -> %s", mychan->name, host);
 
+  if (ca = chanacs_exists_host(mychan, host))
+  {
+    ca->flags |= level;
+    return;
+  }
+
   n = node_create();
 
   ca = BlockHeapAlloc(chanacs_heap);
@@ -1216,10 +1222,16 @@ void chanacs_delete(mychan_t *mychan, myuser_t *myuser, uint8_t level)
   {
     ca = (chanacs_t *)n->data;
 
-    if ((ca->myuser == myuser) && (ca->flags == level))
+    if ((ca->myuser == myuser) && (ca->flags & level))
     {
       slog(LG_DEBUG, "chanacs_delete(): %s -> %s", ca->mychan->name,
            ca->myuser->name);
+
+      ca->flags &= ~level;
+    }
+
+    if (!ca->flags)
+    {
       node_del(n, &mychan->chanacs);
       node_free(n);
 
@@ -1243,11 +1255,16 @@ void chanacs_delete_host(mychan_t *mychan, char *host, uint8_t level)
   {
     ca = (chanacs_t *)n->data;
 
-    if ((ca->host) && (!irccasecmp(host, ca->host)) && (ca->flags == level))
+    if ((ca->host) && (!irccasecmp(host, ca->host)) && (ca->flags & level))
     {
       slog(LG_DEBUG, "chanacs_delete_host(): %s -> %s", ca->mychan->name,
            ca->host);
 
+      ca->flags &= ~level;
+    }
+
+    if (!ca->flags)
+    {
       free(ca->host);
       node_del(n, &mychan->chanacs);
       node_free(n);
@@ -1271,6 +1288,25 @@ chanacs_t *chanacs_exists(mychan_t *mychan, myuser_t *myuser)
     ca = (chanacs_t *)n->data;
 
     if (ca->myuser == myuser)
+      return ca;
+  }
+
+  return NULL;
+}
+
+chanacs_t *chanacs_exists_host(mychan_t *mychan, char *host)
+{
+  node_t *n;
+  chanacs_t *ca;
+
+  if ((!mychan) || (!host))
+    return NULL;
+
+  LIST_FOREACH(n, mychan->chanacs.head)
+  {
+    ca = (chanacs_t *)n->data;
+
+    if ((ca->host) && (!match(ca->host, host)))
       return ca;
   }
 
