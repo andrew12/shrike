@@ -1,0 +1,41 @@
+Try to work out a more complicated, but user-friendly access list
+system. People like Atheme's flags, even though one-character mode flags
+are insanely user-unfriendly. We can accomplish some fine-grained control
+beyond xOP by using "flags" that have full names, like current flags used
+in "SET." We also need an AKICK system. This also means I'll have to
+change the DB, and possibly provide a converter (for CA entries at least).
+
+ACL <#chan> GRANT <user> <flag>
+ACL <#chan> REVOKE <user> <flag>
+
+ACL <#chan> <user> <+/-><flag>
+
+ACL <#chan> SET <user> <flag>
+ACL <#chan> UNSET <user> <flag>
+
+Flags (Atheme's list):
+
+   VOICE - Enables use of the voice/devoice commands.
+   AUTOVOICE - Enables automatic voice.
+   OP - Enables use of the op/deop commands.
+   AUTOOP - Enables automatic op.
+   SET - Enables use of the set command.
+   INVITE - Enables use of the invite and getkey commands.
+   +r - Enables use of the kick, kickban, ban and unban commands.
+   RECOVER - Enables use of the recover and clear commands.
+   ACL - Enables modification of channel access lists.
+   +t - Enables use of the topic and topicappend commands.
+   ACLVIEW - Enables viewing of channel access lists.
+   +F - Grants full founder access.
+   AUTOKICK - Enables automatic kickban.
+
+The special permission +* adds all permissions except +b and +F.
+The special permission -* removes all permissions including +b and +F.
+
+NOTE: Differentiate between VOICE/AUTOVOICE etc? What's the point?
+NOTE: +r seems redundant since ACL would allow setting AUTOKICK
+      and shrike has no "kick, kickban, ban, and unban" commands.
+NOTE: +t is stupid. Channels already do that for us.
+NOTE: +F is... crazy. I think I prefer FOUNDER/SUCCESSOR.
+NOTE: Leave current xOP system in place as a shortcut for
+      adding a subset of flags?
