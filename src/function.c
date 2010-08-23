@@ -133,7 +133,7 @@ void *smalloc(size_t size)
 }
 
 /* does calloc()'s job and dies if calloc() fails */
-void *scalloc(long elsize, long els)
+void *scalloc(size_t elsize, size_t els)
 {
   void *buf = calloc(elsize, els);
 
@@ -143,7 +143,7 @@ void *scalloc(long elsize, long els)
 }
 
 /* does realloc()'s job and dies if realloc() fails */
-void *srealloc(void *oldptr, long newsize)
+void *srealloc(void *oldptr, size_t newsize)
 {
   void *buf = realloc(oldptr, newsize);
 
@@ -268,8 +268,7 @@ uint8_t regex_match(regex_t * preg, char *pattern, char *string,
   if (regexec(preg, string, 5, pmatch, 0) != 0)
     return 1;
 
-  else
-    return 0;
+  return 0;
 }
 
 /* generates a hash value */
@@ -327,7 +326,8 @@ char *replace(char *s, int32_t size, const char *old, const char *new)
 char *itoa(int num)
 {
   static char ret[32];
-  sprintf(ret, "%d", num);
+
+  snprintf(ret, 32, "%d", num);
   return ret;
 }
 
@@ -495,6 +495,14 @@ int validemail(char *email)
 {
   int i, valid = 1, chars = 0;
 
+  /* if it starts with a dash it'll mess up the MTA
+   * i have no idea if emails are otherwise allowed to
+   * start with dashes, but if they are they'd better not
+   * use one to register with shrike :(
+   */
+  if (*email == '-')
+    valid = 0;
+
   /* make sure it has @ and . */
   if (!strchr(email, '@') || !strchr(email, '.'))
     valid = 0;
@@ -583,8 +591,8 @@ void sendemail(char *what, const char *param, int type)
 
   date = timebuf;
 
-  sprintf(from, "%s <%s@%s>", svs.nick, svs.user, svs.host);
-  sprintf(to, "%s <%s>", mu->name, email);
+  snprintf(from, 128, "%s <%s@%s>", svs.nick, svs.user, svs.host);
+  snprintf(to, 128, "%s <%s>", mu->name, email);
 
   if (type == 1)
     strlcpy(subject, "Username Registration", 128);
@@ -594,7 +602,7 @@ void sendemail(char *what, const char *param, int type)
     strlcpy(subject, "Change Email Confirmation", 128);
 
   /* now set up the email */
-  sprintf(cmdbuf, "%s %s", me.mta, email);
+  snprintf(cmdbuf, 512, "%s %s", me.mta, email);
   out = popen(cmdbuf, "w");
 
   fprintf(out, "From: %s\n", from);

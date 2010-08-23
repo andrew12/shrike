@@ -2054,6 +2054,15 @@ static void do_kline(char *origin)
     {
       duration = 0;
       treason = strtok(NULL, "");
+
+      if (!treason)
+      {
+        notice(origin, "Insufficient parameters for \2KLINE ADD\2.");
+        notice(origin, "Syntax: KLINE ADD <nick|hostmask> [!P|!T <minutes>] "
+               "<reason>");
+        return;
+      }
+
       strlcpy(reason, treason, BUFSIZE);
     }
     else if (!strcasecmp(token, "!T"))
@@ -2061,6 +2070,15 @@ static void do_kline(char *origin)
       s = strtok(NULL, " ");
       duration = (atol(s) * 60);
       treason = strtok(NULL, "");
+
+      if (!treason)
+      {
+        notice(origin, "Insufficient parameters for \2KLINE ADD\2.");
+        notice(origin, "Syntax: KLINE ADD <nick|hostmask> [!P|!T <minutes>] "
+               "<reason>");
+        return;
+      }
+
       strlcpy(reason, treason, BUFSIZE);
     }
     else
@@ -2115,7 +2133,7 @@ static void do_kline(char *origin)
       /* make sure there's at least 5 non-wildcards */
       for (tmphost = hostbuf; *tmphost; tmphost++)
       {
-        if (*tmphost != '*' || *tmphost != '?')
+        if (*tmphost != '*' && *tmphost != '?' && *tmphost != '.')
           i++;
       }
 
