@@ -452,7 +452,7 @@ server_t *server_add(char *name, uint8_t hops, char *desc)
 
   s = BlockHeapAlloc(serv_heap);
 
-  s->hash = SHASH((unsigned char *)name);
+  s->hash = shash(name);
 
   node_add(s, n, &servlist[s->hash]);
 
@@ -521,7 +521,7 @@ server_t *server_find(char *name)
   server_t *s;
   node_t *n;
 
-  LIST_FOREACH(n, servlist[SHASH((unsigned char *)name)].head)
+  LIST_FOREACH(n, servlist[shash(name)].head)
   {
     s = (server_t *)n->data;
 
@@ -546,7 +546,7 @@ user_t *user_add(char *nick, char *user, char *host, server_t *server)
 
   u = BlockHeapAlloc(user_heap);
 
-  u->hash = UHASH((unsigned char *)nick);
+  u->hash = shash(nick);
 
   node_add(u, n, &userlist[u->hash]);
 
@@ -615,17 +615,13 @@ user_t *user_find(char *nick)
 {
   user_t *u;
   node_t *n;
-  uint32_t i;
 
-  for (i = 0; i < HASHSIZE; i++)
+  LIST_FOREACH(n, userlist[shash(nick)].head)
   {
-    LIST_FOREACH(n, userlist[i].head)
-    {
-      u = (user_t *)n->data;
+    u = (user_t *)n->data;
 
-      if (!irccasecmp(nick, u->nick))
-        return u;
-    }
+    if (!irccasecmp(nick, u->nick))
+      return u;
   }
 
   slog(LG_DEBUG, "user_find(): called for nonexistant user `%s'", nick);
@@ -663,7 +659,7 @@ channel_t *channel_add(char *name, uint32_t ts)
 
   c->name = sstrdup(name);
   c->ts = ts;
-  c->hash = CHASH((unsigned char *)name);
+  c->hash = shash(name);
 
   if ((mc = mychan_find(c->name)))
     mc->chan = c;
@@ -712,17 +708,13 @@ channel_t *channel_find(char *name)
 {
   channel_t *c;
   node_t *n;
-  uint32_t i;
 
-  for (i = 0; i < HASHSIZE; i++)
+  LIST_FOREACH(n, chanlist[shash(name)].head)
   {
-    LIST_FOREACH(n, chanlist[i].head)
-    {
-      c = (channel_t *)n->data;
+    c = (channel_t *)n->data;
 
-      if (!irccasecmp(name, c->name))
-        return c;
-    }
+    if (!irccasecmp(name, c->name))
+      return c;
   }
 
   return NULL;
@@ -760,11 +752,19 @@ chanuser_t *chanuser_add(channel_t *chan, char *nick)
       else
         u = user_find(nick);
 
+      if (!u)
+      {
+        slog(LG_DEBUG, "chanuser_add(): user_find() failed for %s", nick);
+        return NULL;
+      }
+
       hostbuf = make_hostmask(u->nick, u->user, u->host);
 
       /* see if we need to deop them */
       if ((mc = mychan_find(chan->name)))
       {
+        mc->used = CURRTIME; /* without this channels randomly expire :( */
+
         if (MC_SECURE & mc->flags)
         {
           /* a very ugly check that makes sure they shouldn't be an op */
@@ -792,7 +792,7 @@ chanuser_t *chanuser_add(channel_t *chan, char *nick)
   u = user_find(nick);
   if (u == NULL)
   {
-    slog(LG_DEBUG, "chanuser_add(): nonexist user: %s", nick);
+    slog(LG_DEBUG, "chanuser_add(): nonexistent user: %s", nick);
     return NULL;
   }
 
@@ -971,7 +971,7 @@ myuser_t *myuser_add(char *name, char *pass, char *email)
   mu->pass = sstrdup(pass);
   mu->email = sstrdup(email);
   mu->registered = CURRTIME;
-  mu->hash = MUHASH((unsigned char *)name);
+  mu->hash = shash(name);
 
   node_add(mu, n, &mulist[mu->hash]);
 
@@ -1037,17 +1037,13 @@ myuser_t *myuser_find(char *name)
 {
   myuser_t *mu;
   node_t *n;
-  uint32_t i;
 
-  for (i = 0; i < HASHSIZE; i++)
+  LIST_FOREACH(n, mulist[shash(name)].head)
   {
-    LIST_FOREACH(n, mulist[i].head)
-    {
-      mu = (myuser_t *)n->data;
+    mu = (myuser_t *)n->data;
 
-      if (!irccasecmp(name, mu->name))
-        return mu;
-    }
+    if (!irccasecmp(name, mu->name))
+      return mu;
   }
 
   return NULL;
@@ -1081,7 +1077,7 @@ mychan_t *mychan_add(char *name, char *pass)
   mc->successor = NULL;
   mc->registered = CURRTIME;
   mc->chan = channel_find(name);
-  mc->hash = MCHASH((unsigned char *)name);
+  mc->hash = shash(name);
 
   node_add(mc, n, &mclist[mc->hash]);
 
@@ -1130,17 +1126,13 @@ mychan_t *mychan_find(char *name)
 {
   mychan_t *mc;
   node_t *n;
-  uint32_t i;
 
-  for (i = 0; i < HASHSIZE; i++)
+  LIST_FOREACH(n, mclist[shash(name)].head)
   {
-    LIST_FOREACH(n, mclist[i].head)
-    {
-      mc = (mychan_t *)n->data;
+    mc = (mychan_t *)n->data;
 
-      if (!irccasecmp(name, mc->name))
-        return mc;
-    }
+    if (!irccasecmp(name, mc->name))
+      return mc;
   }
 
   return NULL;

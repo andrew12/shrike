@@ -1,5 +1,5 @@
-shrike-1.1 release notes
+shrike-1.5 release notes
 
-- fixed a bug with hostmask access lists (again)
-- fixed a core in KLINE ADD
-- fixed some minor problems
+- bug fixes
+- major speed boost due to hash table fixes
+  (speed increase from ~8.5 minutes to ~700ms in one case)

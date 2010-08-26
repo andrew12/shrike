@@ -174,6 +174,8 @@ void irc_parse(char *line)
       return;
     if (*line == '\000')
       return;
+    if (strchr(line, '\r'))
+      line--;
 
     /* copy the original line so we know what we crashed on */
     memset((char *)&coreLine, '\0', BUFSIZE);
@@ -531,7 +533,7 @@ static void m_nick(char *origin, uint8_t parc, char *parv[])
 
     /* readd with new nick (so the hash works) */
     n = node_create();
-    u->hash = UHASH((unsigned char *)u->nick);
+    u->hash = shash(u->nick);
     node_add(u, n, &userlist[u->hash]);
   }
   else
